@@ -22,16 +22,28 @@
 <div class="container">
     
     <div class="card fade-in" style="margin-bottom: 20px; border: 2px solid #007bff;">
-    <h2>Portal Login</h2>
-    <div id="auth-form">
-        <input type="email" id="user-email" placeholder="Email" style="padding: 8px; margin: 5px;">
-        <input type="password" id="user-password" placeholder="Password" style="padding: 8px; margin: 5px;">
-        <br>
-        <button class="button" onclick="login()" style="margin-top: 10px;">Login</button>
-        <button class="button" onclick="signUp()" style="background-color: #6c757d;">Sign Up</button>
-    </div>
-    <p id="auth-msg" style="margin-top: 10px; font-weight: bold;"></p>
-    </div>
+        <div id="auth-container">
+            <div id="login-view">
+                <h2>Portal Login</h2>
+                <input type="email" id="login-email" placeholder="Email" style="padding: 8px; margin: 5px;">
+                <input type="password" id="login-password" placeholder="Password" style="padding: 8px; margin: 5px;">
+                <br>
+                <button class="button" onclick="login()">Login</button>
+                <p>New here? <a href="#" onclick="showSignUp()">Create an account</a></p>
+            </div>
+
+            <div id="signup-view" style="display: none;">
+                <h2>Create Your Account</h2>
+                <input type="text" id="signup-name" placeholder="Full Name" style="padding: 8px; margin: 5px;">
+                <input type="email" id="signup-email" placeholder="Email Address" style="padding: 8px; margin: 5px;">
+                <input type="password" id="signup-password" placeholder="Create Password" style="padding: 8px; margin: 5px;">
+                <br>
+                <button class="button" onclick="signUp()" style="background-color: #28a745;">Register Now</button>
+                <p><a href="#" onclick="showLogin()">Back to Login</a></p>
+            </div>
+        </div>
+        <p id="auth-msg" style="margin-top: 10px; font-weight: bold;"></p>
+     </div>
 
     <div class="card fade-in delay-1">
         <h2>About This Project</h2>
@@ -77,43 +89,63 @@
 </footer>
 
 <script>
-    // Initialize Supabase - FIXED: Removed 'js' from 'supabasejs'
+    // Initialize Supabase - Using the correct variable name
     const supabaseUrl = 'https://viedljqfaotxnvmirghz.supabase.co'; 
     const supabaseKey = 'sb_publishable_3hOxBE2Lx6tn_g1o7bKSZw_d74vwWcI';
-    
-    // This line was the culprit!
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Navigation Logic
+    function showSignUp() {
+        document.getElementById('login-view').style.display = 'none';
+        document.getElementById('signup-view').style.display = 'block';
+        document.getElementById('auth-msg').innerText = "";
+    }
+
+    function showLogin() {
+        document.getElementById('signup-view').style.display = 'none';
+        document.getElementById('login-view').style.display = 'block';
+        document.getElementById('auth-msg').innerText = "";
+    }
 
     async function signUp() {
-        const email = document.getElementById('user-email').value;
-        const password = document.getElementById('user-password').value;
+        const name = document.getElementById('signup-name').value;
+        const email = document.getElementById('signup-email').value;
+        const password = document.getElementById('signup-password').value;
         const msg = document.getElementById('auth-msg');
-        
-        const { error } = await supabase.auth.signUp({ email, password });
-        
-        if (error) { 
-            msg.innerText = error.message; 
-            msg.style.color = "red"; 
-        } else { 
-            msg.innerText = "Check your email for a confirmation link!"; 
-            msg.style.color = "green"; 
+
+        // This sends the name to Supabase "User Metadata"
+        const { error } = await _supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: { full_name: name }
+            }
+        });
+
+        if (error) {
+            msg.innerText = error.message;
+            msg.style.color = "red";
+        } else {
+            msg.innerText = "Account created for " + name + "! Check your email to confirm.";
+            msg.style.color = "green";
+            alert("Check your email link to verify your account!");
         }
     }
 
     async function login() {
-        const email = document.getElementById('user-email').value;
-        const password = document.getElementById('user-password').value;
+        const email = document.getElementById('login-email').value;
+        const password = document.getElementById('login-password').value;
         const msg = document.getElementById('auth-msg');
 
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        
-        if (error) { 
-            msg.innerText = error.message; 
-            msg.style.color = "red"; 
-        } else { 
-            msg.innerText = "Welcome back, " + data.user.email; 
+        const { data, error } = await _supabase.auth.signInWithPassword({ email, password });
+
+        if (error) {
+            msg.innerText = error.message;
+            msg.style.color = "red";
+        } else {
+            msg.innerText = "Welcome back!";
             msg.style.color = "green";
-            document.getElementById('auth-form').style.display = "none";
+            document.getElementById('auth-container').innerHTML = "<h3>Logged in as " + data.user.email + "</h3>";
         }
     }
 </script>
