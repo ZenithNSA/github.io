@@ -77,27 +77,40 @@
 </footer>
 
 <script>
-    // Initialize Supabase
+    // Initialize Supabase - FIXED: Removed 'js' from 'supabasejs'
     const supabaseUrl = 'https://viedljqfaotxnvmirghz.supabase.co'; 
     const supabaseKey = 'sb_publishable_3hOxBE2Lx6tn_g1o7bKSZw_d74vwWcI';
-    const supabase = supabasejs.createClient(supabaseUrl, supabaseKey);
+    
+    // This line was the culprit!
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     async function signUp() {
         const email = document.getElementById('user-email').value;
         const password = document.getElementById('user-password').value;
-        const { error } = await supabase.auth.signUp({ email, password });
         const msg = document.getElementById('auth-msg');
-        if (error) { msg.innerText = error.message; msg.style.color = "red"; }
-        else { msg.innerText = "Check your email for a confirmation link!"; msg.style.color = "green"; }
+        
+        const { error } = await supabase.auth.signUp({ email, password });
+        
+        if (error) { 
+            msg.innerText = error.message; 
+            msg.style.color = "red"; 
+        } else { 
+            msg.innerText = "Check your email for a confirmation link!"; 
+            msg.style.color = "green"; 
+        }
     }
 
     async function login() {
         const email = document.getElementById('user-email').value;
         const password = document.getElementById('user-password').value;
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
         const msg = document.getElementById('auth-msg');
-        if (error) { msg.innerText = error.message; msg.style.color = "red"; }
-        else { 
+
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        
+        if (error) { 
+            msg.innerText = error.message; 
+            msg.style.color = "red"; 
+        } else { 
             msg.innerText = "Welcome back, " + data.user.email; 
             msg.style.color = "green";
             document.getElementById('auth-form').style.display = "none";
